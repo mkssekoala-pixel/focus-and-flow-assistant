@@ -18,7 +18,7 @@ export const Route = createFileRoute("/chat")({
 
 const SYSTEM = `You are a helpful, professional AI workplace assistant.
 Help with productivity, communication, planning, writing and general work questions.
-Be concise, practical and friendly. Use short paragraphs or bullet lists. Plain text only.
+Be concise, practical and friendly. Use short paragraphs or bullet lists. You have live web search: use up-to-date information from the web when relevant and list source URLs at the end under "Sources:". Plain text only.
 If a request needs confidential data, remind the user not to share sensitive information.`;
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -36,7 +36,7 @@ function ChatPage() {
     setLoading(true); setError("");
     try {
       const transcript = history.map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`).join("\n\n");
-      const reply = await generateAI(SYSTEM, `Conversation so far:\n${transcript}\n\nReply as the Assistant to the last User message.`);
+      const reply = await generateAI(SYSTEM, `Conversation so far:\n${transcript}\n\nReply as the Assistant to the last User message.`, { webSearch: true });
       setMessages([...history, { role: "assistant", content: reply }]);
     } catch (e) { setError(friendlyError(e)); }
     finally { setLoading(false); }
@@ -52,7 +52,7 @@ function ChatPage() {
   return (
     <div>
       <div className="flex items-start justify-between gap-4">
-        <PageHeader title="AI Chatbot" subtitle="Your workplace assistant for quick questions." />
+        <PageHeader title="AI Chatbot" subtitle="Your workplace assistant, with live web search and sources." />
         <OutlineButton onClick={() => { setMessages([]); setError(""); }} disabled={!messages.length}><Trash2 className="h-4 w-4" /> Clear chat</OutlineButton>
       </div>
       <Card className="flex h-[65vh] flex-col !p-0">
@@ -71,7 +71,7 @@ function ChatPage() {
           ))}
           {loading && (
             <div className="flex">
-              <div className="flex gap-1 rounded-2xl rounded-bl-sm border bg-muted px-4 py-3" aria-label="Assistant is typing">
+              <div className="flex gap-1 rounded-2xl rounded-bl-sm border bg-muted px-4 py-3" aria-label="Assistant is searching the web">
                 {[0, 150, 300].map((d) => <span key={d} className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: `${d}ms` }} />)}
               </div>
             </div>
